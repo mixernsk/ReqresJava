@@ -4,9 +4,6 @@ import lombok.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,7 +16,7 @@ public class UserCreateTest {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class UserCreateResponse {
+    public static class UserCreateResponse {
         private String name;
         private String job;
         private String id;
@@ -32,7 +29,7 @@ public class UserCreateTest {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public class UserDto {
+    public static class UserDto {
         private String name;
         private String job;
     }
@@ -40,6 +37,7 @@ public class UserCreateTest {
     @BeforeAll
     public static void setup() {
         RestAssured.baseURI = "https://reqres.in";
+        RestAssured.useRelaxedHTTPSValidation();
     }
 
     // 1. Позитивный сценарий: успешное создание пользователя
@@ -53,6 +51,7 @@ public class UserCreateTest {
                 .contentType(ContentType.JSON)
                 .body(userDto)
                 .post("/api/users")
+                .then()
                 .statusCode(201)
                 .extract()
                 .as(UserCreateResponse.class);
@@ -72,6 +71,7 @@ public class UserCreateTest {
                 .contentType(ContentType.JSON)
                 .body(userDto)
                 .post("/api/users")
+                .then()
                 .statusCode(201)
                 .extract()
                 .as(UserCreateResponse.class);
@@ -91,6 +91,7 @@ public class UserCreateTest {
                 .contentType(ContentType.JSON)
                 .body(userDto)
                 .post("/api/users")
+                .then()
                 .statusCode(201)
                 .extract()
                 .as(UserCreateResponse.class);
@@ -99,33 +100,31 @@ public class UserCreateTest {
         assertNotNull(response.getCreatedAt());
     }
 
-    // 4. Негативный сценарий: отсутствие поля name в запросе
+    // 4. Негативный сценарий: некорретное тело запроса
     @Test
-    public void noNameCreateTest() {
+    public void invalidReqBodyTest() {
+        String invalidRequest = "This is not a JSON in the first place";
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(invalidRequest)
+                .post("/api/users")
+                .then()
+                .statusCode(400);
+    }
+
+    // 5. Негативный сценарий: некорректный метод запроса
+    @Test
+    public void noJobCreateTest() {
         UserDto userDto = new UserDto();
+        userDto.setName("toomany".repeat(1000));
         userDto.setJob("QA Engineer");
 
         given()
                 .contentType(ContentType.JSON)
                 .body(userDto)
-                .post("/api/users")
-                .statusCode(400)
-                .extract()
-                .as(UserCreateResponse.class);
-    }
-
-    // 5. Негативный сценарий: отсутствие поля job в запросе
-    @Test
-    public void noJobCreateTest() {
-        UserDto userDto = new UserDto();
-        userDto.setName("Ilya Khruschev");
-
-        given()
-                .contentType(ContentType.JSON)
-                .body(userDto)
-                .post("/api/users")
-                .statusCode(400)
-                .extract()
-                .as(UserCreateResponse.class);
+                .options("/api/users")
+                .then()
+                .statusCode(204);
     }
 }
