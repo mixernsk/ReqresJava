@@ -8,8 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class UserCreateTest {
 
@@ -46,12 +44,12 @@ public class UserCreateTest {
     }
 
     @BeforeEach
-    public void setupAssert () {
+    public void setupAssert() {
         this.softAssertions = new SoftAssertions();
     }
 
     @AfterEach
-    public void assertAll () {
+    public void assertAll() {
         this.softAssertions.assertAll();
     }
 
