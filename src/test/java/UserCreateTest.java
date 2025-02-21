@@ -1,7 +1,10 @@
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import lombok.*;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -9,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class UserCreateTest {
+
+    SoftAssertions softAssertions;
 
     @Builder
     @Getter
@@ -40,6 +45,16 @@ public class UserCreateTest {
         RestAssured.useRelaxedHTTPSValidation();
     }
 
+    @BeforeEach
+    public void setupAssert () {
+        this.softAssertions = new SoftAssertions();
+    }
+
+    @AfterEach
+    public void assertAll () {
+        this.softAssertions.assertAll();
+    }
+
     // 1. Позитивный сценарий: успешное создание пользователя
     @Test
     public void createValidDataTest() {
@@ -56,8 +71,12 @@ public class UserCreateTest {
                 .extract()
                 .as(UserCreateResponse.class);
 
-        assertEquals(userDto.getName(), response.getName());
-        assertEquals(userDto.getJob(), response.getJob());
+        this.softAssertions.assertThat(userDto.getName())
+                .withFailMessage("Expected: %s, actual: %s", userDto.getName(), response.getName())
+                .isEqualTo(response.getName());
+        this.softAssertions.assertThat(userDto.getJob())
+                .withFailMessage("Expected: %s, actual: %s", userDto.getJob(), response.getJob())
+                .isEqualTo(response.getJob());
     }
 
     // 2. Позитивный сценарий: успешное создание пользователя с минимальными данными
@@ -76,8 +95,12 @@ public class UserCreateTest {
                 .extract()
                 .as(UserCreateResponse.class);
 
-        assertEquals(userDto.getName(), response.getName());
-        assertEquals(userDto.getJob(), response.getJob());
+        this.softAssertions.assertThat(userDto.getName())
+                .withFailMessage("Expected: %s, actual: %s", userDto.getName(), response.getName())
+                .isEqualTo(response.getName());
+        this.softAssertions.assertThat(userDto.getJob())
+                .withFailMessage("Expected: %s, actual: %s", userDto.getJob(), response.getJob())
+                .isEqualTo(response.getJob());
     }
 
     // 3. Позитивный сценарий: проверка ненулевого ID и даты создания
@@ -96,8 +119,12 @@ public class UserCreateTest {
                 .extract()
                 .as(UserCreateResponse.class);
 
-        assertNotNull(response.getId());
-        assertNotNull(response.getCreatedAt());
+        this.softAssertions.assertThat(response.getId())
+                .withFailMessage("Expected: %s is not NULL", response.getId())
+                .isNotNull();
+        this.softAssertions.assertThat(response.getCreatedAt())
+                .withFailMessage("Expected: %s is not NULL", response.getCreatedAt())
+                .isNotNull();
     }
 
     // 4. Негативный сценарий: некорретное тело запроса
